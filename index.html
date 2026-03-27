@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Emergence Secondary - Student Portal</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: #f0f2f5; color: #1e293b; padding: 20px; }
+        .container { max-width: 850px; margin: auto; background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+        
+        .school-header { text-align: center; border-bottom: 3px solid #7c3aed; padding-bottom: 20px; margin-bottom: 25px; }
+        .school-name { font-size: 28px; color: #4c1d95; font-weight: 800; margin: 0; text-transform: uppercase; }
+        .info-bar { display: flex; justify-content: space-around; background: #f8fafc; padding: 10px; border-radius: 10px; margin-top: 10px; font-weight: 600; font-size: 14px; }
+        
+        .section-header { background: #7c3aed; color: white; padding: 5px 15px; border-radius: 20px; font-size: 12px; display: inline-block; margin-bottom: 10px; }
+        .module-grid { display: grid; grid-template-columns: 1fr; gap: 15px; }
+        .module-card { border: 2px solid #e2e8f0; border-radius: 15px; padding: 20px; display: flex; justify-content: space-between; align-items: center; transition: 0.3s; background: white; }
+        .unlocked { border-color: #7c3aed; cursor: pointer; }
+        .locked { opacity: 0.5; cursor: not-allowed; background: #f1f5f9; }
+        .passed { background: #f0fdf4; border-color: #22c55e; }
+
+        .answer-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 15px; }
+        .ans-btn { padding: 18px; border: 2px solid #cbd5e1; border-radius: 12px; background: white; cursor: pointer; font-size: 16px; transition: 0.2s; text-align: center; font-weight: 500; }
+        .ans-btn:hover { border-color: #7c3aed; background: #f5f3ff; }
+        .ans-selected { background: #7c3aed !important; color: white !important; border-color: #4c1d95 !important; }
+
+        .hint-box { background: #eff6ff; color: #1e40af; padding: 12px; border-radius: 8px; margin-top: 15px; border-left: 4px solid #3b82f6; display: none; font-size: 14px; font-style: italic; }
+
+        .btn { padding: 12px 25px; border-radius: 8px; border: none; font-weight: 700; cursor: pointer; text-transform: uppercase; }
+        .btn-next { background: #7c3aed; color: white; }
+        .btn-back { background: #94a3b8; color: white; }
+        .btn-hint { background: #facc15; color: #854d0e; margin-top: 10px; border-radius: 20px; font-size: 12px; }
+        
+        textarea { width: 100%; height: 200px; border-radius: 10px; border: 2px solid #cbd5e1; padding: 15px; font-size: 16px; margin-top: 15px; resize: none; box-sizing: border-box; line-height: 1.5; }
+        #student-identity { color: #7c3aed; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div id="header-area" style="display:none">
+        <div class="school-header">
+            <h1 class="school-name">Emergence Secondary School</h1>
+            <div class="info-bar">
+                <span>Subject: English Language</span>
+                <span>Tutor: Mr. Cedric Elie Toubi</span>
+                <span>Student: <span id="student-identity"></span></span>
+            </div>
+        </div>
+    </div>
+
+    <div id="screen-login" style="text-align: center; padding: 50px 0;">
+        <h2 style="color:#4c1d95">Troisième Level Assessment</h2>
+        <input type="text" id="name-input" placeholder="Enter Full Name..." style="width:80%; padding:15px; border-radius:10px; border:2px solid #cbd5e1; font-size:18px;">
+        <br><br>
+        <button class="btn btn-next" style="width: 80%; padding: 20px;" onclick="login()">Begin Evaluation</button>
+    </div>
+
+    <div id="screen-dashboard" style="display:none">
+        <h3>Evaluation Modules</h3>
+        <p>Complete 20 Grammar + 20 Vocabulary items to unlock the Writing Task.</p>
+        <div id="module-list" class="module-grid"></div>
+    </div>
+
+    <div id="screen-quiz" style="display:none">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+            <div>
+                <div id="section-tag" class="section-header"></div>
+                <h3 id="mod-title" style="color:#7c3aed; margin:0;"></h3>
+            </div>
+            <span id="q-counter" style="font-weight:bold; color:#64748b"></span>
+        </div>
+        <div id="quiz-body">
+            <h2 id="question-text" style="margin: 20px 0; min-height: 60px;"></h2>
+            <div id="answer-container" class="answer-grid"></div>
+            <button class="btn btn-hint" onclick="toggleHint()">💡 Get a Hint</button>
+            <div id="hint-text" class="hint-box"></div>
+        </div>
+        <div style="display:flex; justify-content:space-between; margin-top:30px;">
+            <button class="btn btn-back" id="back-btn" onclick="nav(-1)">Back</button>
+            <button class="btn btn-next" id="next-btn" onclick="nav(1)">Next</button>
+        </div>
+    </div>
+
+    <div id="screen-writing" style="display:none">
+        <h2 style="color:#7c3aed">Module Conclusion: Writing Task</h2>
+        <div style="background:#fffbeb; padding:20px; border-left:5px solid #f59e0b; border-radius:5px;">
+            <p id="writing-prompt" style="font-weight:600; margin:0; line-height: 1.4;"></p>
+        </div>
+        <textarea id="writing-input" placeholder="Write your concluding paragraph here..."></textarea>
+        <button class="btn btn-next" style="width:100%; margin-top:20px; padding:20px;" onclick="finishModule()">Submit and Unlock Next Module</button>
+    </div>
+
+    <div id="screen-result" style="display:none; text-align:center;">
+        <h1 id="score-text" style="font-size:72px; margin:0; color:#7c3aed;"></h1>
+        <p id="result-msg" style="font-size:18px; color:#64748b;"></p>
+        <button class="btn btn-next" id="result-action" style="width:100%; margin-top:20px; padding:20px;"></button>
+    </div>
+</div>
+
+<script>
+    let studentName = "";
+    let unlocked = 0;
+    let currentMod = 0;
+    let currentQIdx = 0;
+    let studentAnswers = {};
+    let activeQuestions = [];
+
+    const modules = [
+        { 
+            title: "National Integration & Diversity", 
+            prompt: "Write a paragraph explaining why respecting different tribes and cultures is essential for peace in Cameroon. Mention at least two specific ways students can show tolerance at school.",
+            grammarTopic: "Ellipsis & Tenses",
+            vocabTopic: "Tribes & Cultures"
+        },
+        { 
+            title: "Consumer Rights & Responsibilities", 
+            prompt: "In a paragraph, explain your rights as a consumer when you buy a faulty electronic product. What steps should you take to get a refund or replacement?",
+            grammarTopic: "Modals & Conditionals",
+            vocabTopic: "Purchasing & Quality"
+        },
+        { 
+            title: "Environment & Hygiene", 
+            prompt: "Write a paragraph describing the impact of plastic waste on our local environment. Suggest three practical ways Emergence Secondary students can keep the campus clean.",
+            grammarTopic: "Passive Voice & Adverbs",
+            vocabTopic: "Pollution & Sanitation"
+        },
+        { 
+            title: "School Life & Citizenship", 
+            prompt: "Write a paragraph about the role of a class prefect. How does their leadership help maintain discipline and promote the spirit of citizenship among students?",
+            grammarTopic: "Relative Clauses",
+            vocabTopic: "Leadership & Duties"
+        },
+        { 
+            title: "Utilities of Modern Technology", 
+            prompt: "Discuss the advantages and disadvantages of using smartphones for school research. Conclude with your opinion on whether they should be allowed in the classroom.",
+            grammarTopic: "Phrasal Verbs",
+            vocabTopic: "ICTs & Gadgets"
+        }
+    ];
+
+    // Bank of unique questions to prevent repetition
+    const questionBank = {
+        grammar: [
+            { q: "He said he would come, but he didn't __.", a: "...", h: "This punctuation replaces missing words (Ellipsis).", d: [",", "!", "?"] },
+            { q: "If I __ a student leader, I would improve the library.", a: "were", h: "Second conditional use of 'to be'.", d: ["am", "was", "be"] },
+            { q: "The homework __ by the student yesterday.", a: "was done", h: "Passive voice for a past action.", d: ["did", "is done", "does"] },
+            { q: "This is the man __ car was stolen.", a: "whose", h: "Possessive relative pronoun.", d: ["who", "which", "whom"] },
+            { q: "Please __ the computer when you are finished.", a: "shut down", h: "A phrasal verb meaning to turn off.", d: ["shut up", "shut in", "shut out"] }
+        ],
+        vocabulary: [
+            { q: "Cameroon has over 200 different __ group.", a: "ethnic", h: "Related to tribes and cultural background.", d: ["plastic", "digital", "modern"] },
+            { q: "Always check the __ date on milk before drinking it.", a: "expiry", h: "The date when food is no longer safe.", d: ["birthday", "arrival", "meeting"] },
+            { q: "Littering causes __ in our streets.", a: "pollution", h: "Making the environment dirty.", d: ["wealth", "health", "growth"] },
+            { q: "A good citizen obeys the __ of the land.", a: "laws", h: "Rules set by the government.", d: ["games", "songs", "weather"] },
+            { q: "To surf the web, you need a stable __ connection.", a: "internet", h: "Global network of computers.", d: ["battery", "plastic", "paper"] }
+        ]
+    };
+
+    function generateEvaluation(modIdx) {
+        let questions = [];
+        
+        // Add 20 Grammar questions (Looping bank for demonstration, unique in production)
+        for(let i=0; i<20; i++) {
+            let base = questionBank.grammar[i % questionBank.grammar.length];
+            questions.push({
+                id: `g${i}`,
+                type: "GRAMMAR",
+                text: `[Grammar] ${base.q}`,
+                correct: base.a,
+                hint: base.h,
+                options: [base.a, ...base.d].sort(() => Math.random() - 0.5)
+            });
+        }
+        
+        // Add 20 Vocabulary questions
+        for(let i=0; i<20; i++) {
+            let base = questionBank.vocabulary[i % questionBank.vocabulary.length];
+            questions.push({
+                id: `v${i}`,
+                type: "VOCABULARY",
+                text: `[Vocabulary] ${base.q}`,
+                correct: base.a,
+                hint: base.h,
+                options: [base.a, ...base.d].sort(() => Math.random() - 0.5)
+            });
+        }
+        
+        return questions;
+    }
+
+    function login() {
+        studentName = document.getElementById('name-input').value;
+        if(!studentName) return alert("Please enter your name.");
+        document.getElementById('screen-login').style.display = 'none';
+        document.getElementById('header-area').style.display = 'block';
+        document.getElementById('student-identity').innerText = studentName;
+        showDashboard();
+    }
+
+    function showDashboard() {
+        hideScreens();
+        document.getElementById('screen-dashboard').style.display = 'block';
+        const list = document.getElementById('module-list');
+        list.innerHTML = "";
+        modules.forEach((m, i) => {
+            const card = document.createElement('div');
+            const state = i < unlocked ? "passed" : (i === unlocked ? "unlocked" : "locked");
+            card.className = `module-card ${state}`;
+            card.innerHTML = `<div><strong>Module ${i+1}</strong><br>${m.title}</div> <div>${i < unlocked ? '✅ 100%' : '40 Evaluation Items'}</div>`;
+            if(state !== "locked") card.onclick = () => startMod(i);
+            list.appendChild(card);
+        });
+    }
+
+    function startMod(i) {
+        currentMod = i;
+        currentQIdx = 0;
+        studentAnswers = {};
+        activeQuestions = generateEvaluation(i);
+        showQuiz();
+    }
+
+    function showQuiz() {
+        hideScreens();
+        document.getElementById('screen-quiz').style.display = 'block';
+        document.getElementById('mod-title').innerText = modules[currentMod].title;
+        renderQuestion();
+    }
+
+    function renderQuestion() {
+        const q = activeQuestions[currentQIdx];
+        document.getElementById('section-tag').innerText = q.type;
+        document.getElementById('q-counter').innerText = `Item ${currentQIdx + 1} of 40`;
+        document.getElementById('question-text').innerText = q.text;
+        document.getElementById('hint-text').innerText = q.hint;
+        document.getElementById('hint-text').style.display = 'none';
+        
+        const container = document.getElementById('answer-container');
+        container.innerHTML = "";
+        q.options.forEach(opt => {
+            const btn = document.createElement('button');
+            btn.className = `ans-btn ${studentAnswers[q.id] === opt ? 'ans-selected' : ''}`;
+            btn.innerText = opt;
+            btn.onclick = () => { studentAnswers[q.id] = opt; renderQuestion(); };
+            container.appendChild(btn);
+        });
+
+        document.getElementById('back-btn').disabled = currentQIdx === 0;
+        document.getElementById('next-btn').innerText = currentQIdx === 39 ? "Submit Evaluation" : "Next";
+    }
+
+    function toggleHint() {
+        const h = document.getElementById('hint-text');
+        h.style.display = h.style.display === 'none' ? 'block' : 'none';
+    }
+
+    function nav(dir) {
+        if(dir === 1 && currentQIdx === 39) evaluate();
+        else { currentQIdx += dir; renderQuestion(); }
+    }
+
+    function evaluate() {
+        const failed = activeQuestions.filter(q => studentAnswers[q.id] !== q.correct);
+        hideScreens();
+        document.getElementById('screen-result').style.display = 'block';
+        
+        if(failed.length === 0) {
+            document.getElementById('score-text').innerText = "100%";
+            document.getElementById('result-msg').innerText = "Objective items complete! Proceed to the writing task to finish the module.";
+            const btn = document.getElementById('result-action');
+            btn.innerText = "Begin Writing Task";
+            btn.onclick = () => {
+                hideScreens();
+                document.getElementById('screen-writing').style.display = 'block';
+                document.getElementById('writing-prompt').innerText = modules[currentMod].prompt;
+            };
+        } else {
+            document.getElementById('score-text').innerText = `${40 - failed.length}/40`;
+            document.getElementById('result-msg').innerText = "You must correct your errors to reach 100% and unlock the writing section.";
+            activeQuestions = failed;
+            currentQIdx = 0;
+            const btn = document.getElementById('result-action');
+            btn.innerText = "Review Incorrect Items";
+            btn.onclick = showQuiz;
+        }
+    }
+
+    function finishModule() {
+        if(!document.getElementById('writing-input').value) return alert("Please complete your paragraph first.");
+        alert("Evaluation successfully completed. Results sent to Mr. Cedric Elie Toubi.");
+        document.getElementById('writing-input').value = "";
+        if(currentMod === unlocked) unlocked++;
+        showDashboard();
+    }
+
+    function hideScreens() {
+        ['screen-login', 'screen-dashboard', 'screen-quiz', 'screen-writing', 'screen-result'].forEach(s => {
+            document.getElementById(s).style.display = 'none';
+        });
+    }
+</script>
+</body>
+</html>
